@@ -1,11 +1,14 @@
-## Inteface: 80000
+## Interface: 80000
 
 ## Title: Soulbound
-## Notes: "Everything bound to the soul"
+## Notes: Binding everything to the Soul
 ## Author: Veruthas
 ## Version: 0.0.1
 
-## SavedVariablesPerCharacter: SoulboundData
+## SavedVariables: SoulboundData
+## SavedVariablesPerCharacter: SoulboundCharData
+
+## X-License: MIT/X
 
 # Files
 Core.lua
