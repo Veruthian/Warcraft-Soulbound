@@ -1,30 +1,72 @@
 local sb = {}; Soulbound = sb;
 
-function sb.PrintCategories()
+function sb.GetAchievementData()
+
+   local categories = {};
+
+   local achievements = {};   
+
+
+   local categoryIds = GetCategoryList();
    
-   local categories = GetCategoryList();
-   
-   for _, category in ipairs(categories) do
+   for index, categoryId in ipairs(categoryIds) do
       
-      local tags = sb.GetCategoryTags(category);
+      local name, parentId = GetCategoryInfo(categoryId);
       
-      print(table.concat(tags, ', '));
+      local category = {
+            Id = categoryId, 
+            Name = name, 
+            ParentId = parentId, 
+            Achievements = sb.GetAchievements(categoryId, achievements)
+      };
+
+      message(name);
+
+      categories[categoryId] = category;      
+
+   end  
+
+   return categories, achievements;
+
+end
+  
+function sb.GetAchievements(categoryId, totalAchievements)
+
+   local achievementCount = GetCategoryNumAchievements(categoryId, true);
+
+   local achievements = {};
+
+   for index = 1, achievementCount do
+
+      local id, name, points, completed, month, day, year, description, flags, icon, rewardText, isGuildAch, wasEarnedByMe, earnedBy = GetAchievementInfo(categoryId, index) 
+      
+      if (id) then
+
+         local achievement = {
+               Id = id, 
+               Name = name, 
+               Points = points, 
+               Completed = completed, 
+               Month = month, 
+               Day = day, 
+               Year = year, 
+               Description = description, 
+               IconPath = icon, 
+               RewardText = rewardText, 
+               WasEarnedByMe = wasEarnedByMe, 
+               EarnedBy = earnedby 
+         };
+
+         
+         tinsert(achievements, achievement);
+
+         totalAchievements[id] = achievement;
+
+      end
    end
-   
+
+   return achievements;
+
 end
 
-function sb.GetCategoryTags(categoryId)
-   
-   local tags = {}
-   
-   repeat
-      
-      name, categoryId = GetCategoryInfo(categoryId);
-      
-      table.insert(tags, 1, name);
-      
-   until (categoryId < 0)
-   
-   return tags;
-   
-end
+
