@@ -21,6 +21,8 @@ local GetCategoryList = GetCategoryList;
 
 local GetCategoryInfo = GetCategoryInfo;
 
+local GetCategoryNumAchievements = GetCategoryNumAchievements;
+
 local GetAchievementInfo = GetAchievementInfo;
 
 
@@ -106,11 +108,19 @@ local function Repeat(value, times)
 
 end
 
-local function PrintTree(category, level)
+local function PrintTree(category, level, sigil)
 
    level = level or 0;
 
-   print(Repeat('   ', level), "Id: ", category.Id, "; Name: '", category.Name, "'");
+   sigil = sigil or '';
+
+   print(Repeat('   ', level), sigil, "Id: ", category.Id, "; Name: '", category.Name, "'");
+
+   if (category.Achievements) then
+      for _, achievement in ipairs(category.Achievements) do
+         PrintTree(achievement, level + 1, '*');
+      end
+   end
 
    if (category.Children) then
       for _, child in ipairs(category.Children) do
@@ -121,7 +131,7 @@ end
 
 function sb.PrintCategories()
 
-   local categories = sb.GetCategories();
+   local categories = sb.LoadData();
 
    for _, category in pairs(categories) do
 
@@ -137,6 +147,39 @@ function sb.PrintCategories()
 end
 
 
+
+local function LoadAchievements(categoryId, achievements)
+
+   local childAchievements  = {};
+
+   local achievementCount = GetCategoryNumAchievements(categoryId, true);
+
+   for index = 1, achievementCount do
+
+      local id, name, points, _, _, _, _, description = GetAchievementInfo(categoryId, index) 
+
+      if (id or name) then
+
+         local achievement = {
+            Id = id,
+            Name = name,
+            Points = points,
+            Description = description   
+         };
+
+         tinsert(childAchievements, achievement);
+         
+         printf(id, name, achievements);
+         achievements[id] = achievement;
+
+      end
+      
+   end
+
+   return childAchievements;
+
+end
+
 local function AddChild(category, parent)
 
    if (parent) then
@@ -148,7 +191,7 @@ local function AddChild(category, parent)
    end
 end
 
-local function LoadCategory(id, categories)
+local function LoadCategory(id, categories, achievements)
 
    if (not categories[id]) then
 
@@ -166,7 +209,9 @@ local function LoadCategory(id, categories)
          
          local parent = categories[parentId];
 
-         local category = {Id = id, Name = name, Parent = parent};
+         local categoryAchievements = LoadAchievements(id, achievements);
+
+         local category = {Id = id, Name = name, Parent = parent, Achievements = categoryAchievements};
    
          AddChild(category, parent)
 
@@ -184,21 +229,21 @@ local function LoadCategory(id, categories)
 
 end
 
-function sb.GetCategories()
+
+function sb.LoadData()
 
    local ids = GetCategoryList();
 
    local categories = {};
 
+   local achievements = {};
+   
    for _, id in pairs(ids) do
 
-      LoadCategory(id, categories);
+      LoadCategory(id, categories, achievements);
 
    end
 
    return categories;
 
-end
-
-function sb.GetAchievements()
 end
